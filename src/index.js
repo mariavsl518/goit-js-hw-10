@@ -5,54 +5,69 @@ import { fetchBreeds, fetchCatByBreed } from './cat-api.js';
 const select = document.querySelector('.breed-select');
 const loaderMesage = document.querySelector('.loader');
 const errorMessage = document.querySelector('.error');
-const info = document.querySelector('.cat-info');
+const infoBox = document.querySelector('.cat-info');
 
-hide(loaderMesage);
+// hide(loaderMesage);
 hide(errorMessage);
 
+select.addEventListener('change', handleSelect);
 // console.log(fetchBreeds());
+breedsLoad()
 
-fetchBreeds()
-    .then(resp => {
-        const obj = resp.data;
-        const markup = obj.map(({ id, name }) => `<option value="${id}">${name}</option>`).join('');
-        
-        select.insertAdjacentHTML("afterbegin", markup);
-        select.addEventListener('change', handleSelect);
+function breedsLoad() {
+    show(loaderMesage);
+    hide(infoBox);
+    fetchBreeds()
+        .then(resp => {
+            const cats = resp.map(({ reference_image_id, name }) =>
+                markupSelect(reference_image_id, name)).join('');
+            select.insertAdjacentHTML('afterbegin', cats);
+        })
+        .catch(() => {
+            Report.failure(`Error`, `${errorMessage.textContent}`, `Got it!`)
+        })
+        .finally(() => {
+            show(infoBox);
+            hide(loaderMesage)
+        })
+}
 
-        function handleSelect(evt) {
+function handleSelect(evt) {
+    show(loaderMesage);
+    hide(infoBox);
+    const breedId = evt.target.value;
 
-            breedId = evt.target.value;
-            const findInfo = obj.find(info => info.id === breedId);
-            fetchCatByBreed(breedId)
-                .then(resp => {
-                    
-                    // if (resp.response !== '') {
-                    //     show(loaderMesage);
-                    //     hide(info)
-                    // } else {
-                    //     show(info);
-                    //     hide(loaderMesage)
-                    // }
-                    resp.data.map(({ url, name }) => info.innerHTML = `
-                <div style="margin:20px">
-                <img src="${url}" alt="${name} height="250px">
-                <h2>${findInfo.name}</h2>
-                <p>${findInfo.description}</p>
-                <p>${findInfo.temperament}</p>
-                </div>
-                `).join('');
-                })
-                .catch(() => {
-                    Report.failure(`Error`,`${errorMessage.textContent}`,`Got it!`)
-                    // hide(info)
-                }
-                );
-        }
-    })
-    .catch(() => {
-        Report.failure(`Error`,`${errorMessage.textContent}`,`Got it!`)
-    })
+    fetchCatByBreed(breedId)
+        .then(resp => {
+            infoBox.innerHTML = markupInfo(resp);
+        })
+        .catch(() => {
+            Report.failure(`Error`,`${errorMessage.textContent}`,`Got it!`)
+        })
+        .finally(() => {show(infoBox);
+                        hide(loaderMesage);})
+}
+
+function markupSelect(reference_image_id
+                        , name) { 
+            return `<option value="${reference_image_id}">${name}</option>`;
+}
+
+function markupInfo(resp) { 
+    show(loaderMesage);
+    const {
+            url,
+            breeds: {
+            0: { description, temperament, name },
+          }, } = resp;
+    
+    return `<img src="${url}" alt="${name}" class="image">
+            <div class="info-box">
+            <h2 class="name-title">${name}</h2>
+            <p>${description}</p>
+            <p><span style="font-weight:bold">Temperament:</span>${temperament}</p>
+            </div>`
+}
 
 function show (el) { 
     return el.hidden = 'false';
