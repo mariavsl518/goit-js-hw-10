@@ -7,12 +7,12 @@ const loaderMesage = document.querySelector('.loader');
 const errorMessage = document.querySelector('.error');
 const infoBox = document.querySelector('.cat-info');
 
-// hide(loaderMesage);
+hide(loaderMesage);
 hide(errorMessage);
 
 select.addEventListener('change', handleSelect);
-// console.log(fetchBreeds());
-breedsLoad()
+
+breedsLoad();
 
 function breedsLoad() {
     show(loaderMesage);
@@ -70,10 +70,10 @@ function markupInfo(resp) {
 }
 
 function show (el) { 
-    return el.hidden = 'false';
+    return el.hidden = false;
 }
 
 function hide(el) { 
-    return el.hidden = 'true';
+    return el.hidden = true;
 }
 
